@@ -86,6 +86,7 @@ class Mongo(DataLayer):
         # mongod must be running or this will raise an exception
         try:
             self.driver = PyMongo(app)
+            self.app = app
         except Exception as e:
             raise ConnectionException(e)
 
@@ -201,6 +202,9 @@ class Mongo(DataLayer):
         bad_filter = validate_filters(spec, resource)
         if bad_filter:
             abort(400, bad_filter)
+
+        event_name = 'on_filter_' + resource
+        getattr(self.app, event_name)(spec)
 
         if sub_resource_lookup:
             spec = self.combine_queries(spec, sub_resource_lookup)
